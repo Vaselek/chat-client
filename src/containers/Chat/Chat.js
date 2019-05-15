@@ -11,10 +11,9 @@ class Chat extends Component {
         usernames: [],
     }
 
-    componentDidMount() {
+    setChat = () => {
         this.websocket = new WebSocket('ws://localhost:8000/chat?token=' + this.props.user.token);
         this.websocket.onmessage = event => {
-            console.log(event.data)
             const decodedMessage = JSON.parse(event.data);
 
             if (decodedMessage.type === 'LATEST_MESSAGES') {
@@ -36,6 +35,18 @@ class Chat extends Component {
             }
 
         }
+        this.websocket.onerror = error => {
+            const interval = setInterval(
+                () => {
+                    this.websocket = new WebSocket('ws://localhost:8000/chat?token=' + this.props.user.token);
+                    console.log(error)
+                    if (!error) clearInterval(interval)
+                }, 1000)
+        }
+    }
+
+    componentDidMount() {
+        this.setChat()
     }
 
     sendMessage = () => {
